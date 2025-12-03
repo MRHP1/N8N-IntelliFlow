@@ -1,0 +1,586 @@
+{
+  "name": "Agile JRA",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "daysInterval": 14
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "1f7ea1ad-99fa-4de6-a889-baf9efd5dbba",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        464,
+        0
+      ],
+      "id": "9bf63419-e523-49c8-83ac-992b36db2ca1",
+      "name": "Get many issues",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "NhtNxTmJwWlcpCHC",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1264,
+        -16
+      ],
+      "id": "1f417c93-18c2-4f5b-9560-3b7d5233e3ac",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "name": "Replace Me",
+      "typeVersion": 1,
+      "position": [
+        2784,
+        640
+      ],
+      "id": "5c40ed6a-979c-4c2a-9a4c-b8375ba2a622"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://192.168.1.2:5000/predict/all",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "Json",
+              "value": "={{ $json }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1504,
+        0
+      ],
+      "id": "bff5cde4-353c-41e3-b017-6b442beeff77",
+      "name": "Call Model API"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "5c057ff9-180f-410a-b900-d2e50729ec70",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2624,
+        112
+      ],
+      "id": "3ad1b73c-0116-452b-bd08-e7cf42e080c6",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://schtig.atlassian.net/rest/api/3/issue/{{$json.key}}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "jiraSoftwareCloudApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={ \"fields\": { \"duedate\": \"{{$json.dueDate}}\", \"assignee\": { \"accountId\": \"{{$json.assigneeAccountId}}\" }, \"description\": { \"type\": \"doc\", \"version\": 1, \"content\": [ { \"type\": \"paragraph\", \"content\": [ { \"type\": \"text\", \"text\": \"{{$json.description}}\" } ] } ] } } }",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2336,
+        32
+      ],
+      "id": "04cd5615-51b5-42f7-b0e0-6c4e444e5fb2",
+      "name": "Update JIRA Issue",
+      "alwaysOutputData": false,
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "NhtNxTmJwWlcpCHC",
+          "name": "Jira SW Cloud account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Get ML result (the API output)\nconst data = $input.item.json;\n\n// --- 1. Compute due date ---\nconst days = Number(data.predicted_deadline_days || 0);\nconst due = new Date();\ndue.setDate(due.getDate() + days);\nconst dueDate = due.toISOString().split(\"T\")[0];\n\n// --- 2. Mapping ML -> Jira accountId (pure JS object) ---\nconst accountIdMap = {\n  \"Maxim Khutornenko\": \"712020:a7bdea09-c0da-4947-93d0-930e78e73cdc\",\n  \"Bill Farner\": \"712020:f137c0bd-dcd9-4412-8889-fdaf9320ae89\",\n  \"Kevin Sweeney\": \"712020:75109ef5-e134-4bfa-a9f1-3d03bb2bd6f1\",\n  \"Mark Chu-Carroll\": \"712020:560661ed-2a0e-459b-8a14-be8dab180ed7\",\n  \"Zameer Manji\": \"712020:72077b13-cbe8-4c57-949d-4d2d7d5f863a\",\n  \"Joshua Cohen\": \"712020:74ced783-3e5a-47ee-a593-9a397401feae\",\n  \"Brian Wickman\": \"712020:1fd28454-6451-4794-95b8-160e5609c212\",\n  \"David McLaughlin\": \"712020:ef3a24c5-e3df-461a-b103-8e5df325f378\",\n  \"Joe Smith\": \"712020:55181ba0-300b-4a1e-8070-394b0563b15b\",\n  \"Suman Karumuri\": \"712020:ab5b625b-eded-4e65-b44b-86a31754ccc1\",\n  \"Santhosh Kumar Shanmugham\": \"712020:89a01cf1-dec9-4dbd-b938-be01d789ff3f\",\n  \"Mehrdad Nurolahzade\": \"712020:574df6c0-e9ec-4c87-9bfd-6e228d636def\",\n  \"Kai Huang\": \"712020:ad9a4027-702d-4075-9c97-d4cf56a1e6aa\",\n  \"Dominic Hamon\": \"712020:77ed03af-6b83-4da4-a6ba-7e70c70699b6\",\n  \"Stephan Erb\": \"712020:367c47e2-8fa4-4c99-a06a-b69630063677\",\n  \"Benjamin Mahler\": \"712020:366caf22-352e-4bdb-bfff-745b3d6a2ecf\"\n};\n\n// ML predicted name\nconst assigneeName = data.recommended_assignee;\n\n// Lookup accountId\nconst assigneeAccountId = accountIdMap[assigneeName] || null;\n\nif (!data.description || data.description.trim().length === 0) {\n  data.description = \"Description automatically generated by AI.\";\n}\n\n// --- 3. Return to next node (Jira Update Issue) ---\nreturn {\n  key: data.key,\n  dueDate: dueDate,\n  assigneeName: assigneeName,\n  assigneeAccountId: assigneeAccountId\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1696,
+        0
+      ],
+      "id": "3a0ea28a-c531-420c-9196-52f2bc9c8356",
+      "name": "Rewrite to Fit JIRA"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get all incoming items (both inputs)\nconst all = $input.all();\n\n// Input 0 = GitHub SHA response\nconst shaResponse = all[0].json;\n\n// Input 1 = Issue data from Jira/AI\nconst issue = all[1].json;\n\n// --------------------------------------\n// 1. Extract SHA safely\n// --------------------------------------\nlet sha = null;\n\nif (shaResponse.object?.sha) {\n  sha = shaResponse.object.sha;\n} else if (Array.isArray(shaResponse) && shaResponse[0]?.object?.sha) {\n  sha = shaResponse[0].object.sha;\n} else {\n  throw new Error(\"SHA not found in GitHub response.\");\n}\n\n\n// --------------------------------------\n// 2. Build branch name\n// --------------------------------------\nconst key = issue.key || \"TASK-0\";\nconst assignee = issue.assigneeName || \"unknown\";\nconst description = issue.description || \"\";\n\nconst summaryRaw = issue.summary || \"\";\nconst safeSummary = String(summaryRaw);\n\nfunction slugify(str) {\n  return String(str)\n    .toLowerCase()\n    .replace(/[^a-z0-9]+/g, \"-\")\n    .replace(/^-+|-+$/g, \"\")\n    .slice(0, 50);\n}\n\nconst branch = `${key}/${slugify(safeSummary)}`;\n\n\n// --------------------------------------\n// 3. Return full payload for GitHub Node\n// --------------------------------------\nreturn {\n  key,\n  assignee,\n  summary: safeSummary,\n  description,\n  branch,\n  sha,\n  skip: false\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2080,
+        448
+      ],
+      "id": "54aba34c-11bd-4677-a2e1-1209364bb8f5",
+      "name": "Prep Git Branch"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst result = [];\n\nfor (const item of items) {\n  const issue = item.json;\n  const fields = issue.fields || {};\n\n  const assigneeObj = fields.assignee || null;\n  const dueDate = fields.duedate || null;\n\n  const hasAssignee = assigneeObj !== null;\n  const hasDueDate = dueDate !== null;\n\n  const needsAI = (!hasAssignee || !hasDueDate);\n\n  // Only output issues needing AI\n  if (!needsAI) continue;\n\n  result.push({\n    key: issue.key || \"\",\n    \n    issuetype: fields.issuetype?.name || \"Task\",\n\n    priorityid: fields.priority?.id ? parseInt(fields.priority.id) : 3,\n\n    // Normalize story point\n    storypoint: fields.customfield_10016\n      ? parseFloat(fields.customfield_10016)\n      : 5,\n\n    project: fields.project?.name || \"Unknown\",\n\n    summary: fields.summary || \"\",\n\n    // Labels\n    labels: Array.isArray(fields.labels) ? fields.labels : [],\n\n    assigneeName: assigneeObj?.displayName || null,\n    assigneeAccountId: assigneeObj?.accountId || null,\n\n    dueDate: dueDate,\n\n    // NEW — bring in your new branch link custom field\n    branchLink: fields.customfield_10071 || null,\n\n    needsAI,\n    hasAssignee,\n    hasDueDate\n  });\n}\n\nreturn result;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        -16
+      ],
+      "id": "63c8ec52-4707-4fdf-a0b8-86dff91fd9ff",
+      "name": "Reformat Raw JIRA"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://192.168.1.2:6000/generate-description",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"key\": \"{{$json.key}}\",\n  \"summary\": \"{{$json.summary}}\",\n  \"issuetype\": \"{{$json.issuetype}}\",\n  \"labels\": [\"{{$json.issuetype}}\"]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1632,
+        208
+      ],
+      "id": "fa72fc86-7db2-4a1f-b99c-0292cdd00147",
+      "name": "Generate AI Description"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "key",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2064,
+        128
+      ],
+      "id": "76bd2cbf-e4a5-4704-9f90-93830031e732",
+      "name": "Model+Description"
+    },
+    {
+      "parameters": {
+        "url": "https://api.github.com/repos/MRHP1/TKTI-ProjectManagement/git/ref/heads/main",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            },
+            {
+              "name": "User-Agent",
+              "value": "n8n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1504,
+        384
+      ],
+      "id": "8f8336a0-46ef-46a9-9dfa-2c9f46bb9cd2",
+      "name": "Get Github SHA",
+      "credentials": {
+        "githubApi": {
+          "id": "Jv0Ke1vSWSH9rmVf",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.github.com/repos/MRHP1/TKTI-ProjectManagement/git/refs",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            },
+            {
+              "name": "User-Agent",
+              "value": "n8n"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"ref\": \"refs/heads/{{$json.branch}}\",\n  \"sha\": \"{{$json.sha}}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2384,
+        336
+      ],
+      "id": "84979e7b-40a5-43f5-b1d3-b29df787155d",
+      "name": "Create Github Branch",
+      "alwaysOutputData": false,
+      "credentials": {
+        "githubApi": {
+          "id": "Jv0Ke1vSWSH9rmVf",
+          "name": "GitHub account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1712,
+        448
+      ],
+      "id": "cc2be0e6-0f82-431c-b009-57972c5d73e8",
+      "name": "SHA+Branch Name"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "key",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1504,
+        576
+      ],
+      "id": "409c8e93-9275-48c5-8940-4b6249564766",
+      "name": "Get Full Issue Data"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "issueKey": "={{ $json.key }}",
+        "updateFields": {
+          "customFieldsUi": {
+            "customFieldsValues": [
+              {
+                "fieldId": {
+                  "__rl": true,
+                  "value": "customfield_10071",
+                  "mode": "list",
+                  "cachedResultName": "Branch Link"
+                },
+                "fieldValue": "=https://github.com/MRHP1/TKTI-ProjectManagement/tree/{{$json.branch}}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        2384,
+        560
+      ],
+      "id": "e52f5af1-2ac6-4663-a53d-ec1c625a3b61",
+      "name": "Add Branch Link to Node",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "NhtNxTmJwWlcpCHC",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get many issues",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many issues": {
+      "main": [
+        [
+          {
+            "node": "Reformat Raw JIRA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Call Model API",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Generate AI Description",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Github SHA",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Full Issue Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Replace Me": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Model API": {
+      "main": [
+        [
+          {
+            "node": "Rewrite to Fit JIRA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Replace Me",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update JIRA Issue": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rewrite to Fit JIRA": {
+      "main": [
+        [
+          {
+            "node": "Model+Description",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prep Git Branch": {
+      "main": [
+        [
+          {
+            "node": "Add Branch Link to Node",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Create Github Branch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reformat Raw JIRA": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate AI Description": {
+      "main": [
+        [
+          {
+            "node": "Model+Description",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Model+Description": {
+      "main": [
+        [
+          {
+            "node": "Update JIRA Issue",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Full Issue Data",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Get Github SHA": {
+      "main": [
+        [
+          {
+            "node": "SHA+Branch Name",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SHA+Branch Name": {
+      "main": [
+        [
+          {
+            "node": "Prep Git Branch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Full Issue Data": {
+      "main": [
+        [
+          {
+            "node": "SHA+Branch Name",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Add Branch Link to Node": {
+      "main": [
+        []
+      ]
+    },
+    "Create Github Branch": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "fc0661d1-bf2b-4dc8-aa17-9ad2441dbc78",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5c6cfe348acb8ac6f31c39d09d3546de542a338deeccc850168010c490833f2b"
+  },
+  "id": "k0MjgUtFhtV85bAk",
+  "tags": []
+}
