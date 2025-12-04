@@ -1,0 +1,1144 @@
+{
+  "name": "1Sprint Assigner",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "daysInterval": 2
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "75d66863-fb9b-4254-be02-65d8ac3c3e9c",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "options": {
+          "jql": "=project = TKTI\nAND sprint in openSprints()\nAND statusCategory != Done\nAND status != \"Review and Testing\"\n"
+        }
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "6d58428c-b44a-4761-af51-89d74f87f211",
+      "name": "Get many issues",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "NhtNxTmJwWlcpCHC",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6922140a-c2dd-42fa-aad8-7b9acd8e4366",
+              "leftValue": "={{$json[\"isSubtask\"]}}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1136,
+        0
+      ],
+      "id": "22fd79a4-7061-4331-bf70-b8c14764ae30",
+      "name": "Is Subtask?"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "issueKey": "={{$json[\"parentKey\"]}}",
+        "simplifyOutput": true,
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        1712,
+        -224
+      ],
+      "id": "e7f6b946-979e-49cf-ad02-5ff122e25fe2",
+      "name": "Get Parent Issue",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "NhtNxTmJwWlcpCHC",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst keys = items\n  .map(item => item.json.key)\n  .filter(k => !!k);\n\nif (keys.length === 0) {\n  return [{ json: { jql: 'project = TKTI AND issuetype in subTaskIssueTypes() AND 1 = 0' } }];\n}\n\n// Build: parent in (TKTI-1, TKTI-2, ...)\nconst keyList = keys.join(', ');\n\nconst jql = `\nproject = TKTI\nAND issuetype in subTaskIssueTypes()\nAND parent in (${keyList})\nAND statusCategory != Done\nAND status != \"Review and Testing\"\n`.trim();\n\nreturn [{ json: { jql } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        384,
+        -160
+      ],
+      "id": "2eee77cf-cb34-4a5b-b3aa-4a25882af79a",
+      "name": "Build JQL for subtasks of those parents"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "options": {
+          "jql": "={{$json.jql}}"
+        }
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        608,
+        -160
+      ],
+      "id": "acdfc60f-39c4-4186-85d2-5ae071e11ee6",
+      "name": "Get Subtasks",
+      "alwaysOutputData": false,
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "NhtNxTmJwWlcpCHC",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "issueKey": "={{$json[\"subtaskKey\"]}}",
+        "updateFields": {
+          "assignee": {
+            "__rl": true,
+            "value": "={{$json.finalAssignee.accountId}}",
+            "mode": "id"
+          },
+          "labels": "={{ $json.finalLabels }}"
+        }
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        2336,
+        -224
+      ],
+      "id": "4d87a697-ddd0-44d3-b047-2205dcf9eb87",
+      "name": "Update an issue",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "NhtNxTmJwWlcpCHC",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst out = [];\n\nfor (const item of items) {\n  const issue = item.json;\n  const fields = issue.fields || {};\n\n  const assignee = fields.assignee;\n  const duedate = fields.duedate;\n  const description = fields.description;\n\n  const labels = fields.labels || [];\n  const statusName = fields.status?.name || \"\";\n  const issueType = fields.issuetype?.name || \"\";\n  const isSubtask = fields.issuetype?.subtask === true;\n  const isDone = statusName === \"Done\";\n\n  const needsAssignee = !assignee;\n  const needsDeadline = !duedate;\n  const needsDescription =\n    !description ||\n    (typeof description === \"string\" && description.trim().length < 30);\n\n  // Failed QA (review_failed)\n  const reviewFailed = labels.includes(\"review_failed\");\n\n  // Needs re-deadline when duedate exists + review failed\n  const needsReDeadline = !!duedate && reviewFailed;\n\n  // Parent key for subtasks\n  const parentKey = isSubtask ? fields.parent?.key || null : null;\n\n  // -------------------------------------------------------\n  // ⚡ NEW: GitHub Branch Link Check (customfield_10071)\n  // -------------------------------------------------------\n  const branchField = fields.customfield_10071; // <-- your branch field\n  const hasBranch = !!branchField;\n  const needsBranch = !hasBranch;\n  const branchLink = branchField || null;\n\n  // Only keep items needing work\n  if (\n    needsAssignee ||\n    needsDeadline ||\n    needsDescription ||\n    needsReDeadline ||\n    isDone ||\n    needsBranch // <-- ADD THIS IF YOU WANT BRANCH CREATION INCLUDED\n  ) {\n    out.push({\n      json: {\n        key: issue.key,\n        fields,\n\n        needsAssignee,\n        needsDeadline,\n        needsDescription,\n        needsReDeadline,\n\n        // New branch output\n        hasBranch,\n        needsBranch,\n        branchLink,\n\n        isSubtask,\n        parentKey,\n        statusName,\n        labels\n      }\n    });\n  }\n}\n\nreturn out;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        976,
+        -16
+      ],
+      "id": "f8bb7734-a96d-439f-9fc2-6be6b44fb50a",
+      "name": "Issues"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://192.168.1.2:6000/generate-description",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"key\": \"{{$json.key}}\",\n  \"summary\": \"{{$json.fields.summary}}\",\n  \"issuetype\": \"{{$json.fields.issuetype.name}}\",\n  \"labels\": \"{{$json.labels}}\",\n  \"project\": \"{{$json.fields.project.key}}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1792,
+        176
+      ],
+      "id": "a93832a7-0f89-4dde-b0a3-15ee733190ab",
+      "name": "Call Description ML API"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "key",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2032,
+        256
+      ],
+      "id": "72c10cbd-cea4-4d14-968f-34c98a96ad4f",
+      "name": "Desc + Pred"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1936,
+        -128
+      ],
+      "id": "60c32b38-3e30-4a83-8e86-30939a4eee2a",
+      "name": "Subtask + Full Issue"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        784,
+        -16
+      ],
+      "id": "9137d732-320e-4434-8d49-11d88928ecff",
+      "name": "Subtask + Parent Issue"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "issueKey": "={{ $json.key }}",
+        "updateFields": {
+          "assignee": {
+            "__rl": true,
+            "value": "={{ $json.chosen_assignee_accountId }}",
+            "mode": "id"
+          },
+          "description": "={{ $json.description }}"
+        }
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        2768,
+        400
+      ],
+      "id": "eb4f4a91-eba6-45f2-b0ad-47dc9f74a427",
+      "name": "Update an issue1",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "NhtNxTmJwWlcpCHC",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// ----------------------------------------------------------\n// 1. Extract workload (always last item in array)\n// ----------------------------------------------------------\nconst all = $input.all().map(i => i.json);\nconst workloadItem = all[all.length - 1];\n\nif (!workloadItem.workload) {\n  throw new Error(\"Workload object not found in last input item!\");\n}\n\nconst workload = workloadItem.workload;\n\n// Filter issues (everything except last workload entry)\nconst issues = all.slice(0, -1);\n\n// ----------------------------------------------------------\n// Config\n// ----------------------------------------------------------\nconst maxLoad = 15; // threshold before skipping an assignee\n\nfunction getLoad(accountId) {\n  if (!accountId) return Infinity;        // missing ID → cannot assign\n  return workload[accountId] || 0;        // default 0 if not in map\n}\n\nfunction resolveName(issue, id) {\n  if (issue.recommended_assignee_accountId === id) {\n    return issue.recommended_assignee_name;\n  }\n  const hit = issue.top_k_recommendations.find(r => r.accountId === id);\n  return hit ? hit.assignee : \"Unknown\";\n}\n\n// ----------------------------------------------------------\n// Compute the best assignee for each issue\n// ----------------------------------------------------------\nconst results = [];\n\nfor (const issue of issues) {\n\n  // ---- Step 1: recommended assignee ----\n  let bestId = issue.recommended_assignee_accountId;\n  let bestName = issue.recommended_assignee_name;\n\n  if (getLoad(bestId) < maxLoad) {\n    results.push({\n      json: {\n        key: issue.key,\n        issuetype: issue.issuetype,\n        project: issue.project,\n        description: issue.description,\n        predicted_deadline_days: issue.predicted_deadline_days,\n        chosen_assignee_name: bestName,\n        chosen_assignee_accountId: bestId\n      }\n    });\n    continue;\n  }\n\n  // ---- Step 2: search ML top-k fallback ----\n  let assigned = false;\n  for (const rec of issue.top_k_recommendations) {\n    if (getLoad(rec.accountId) < maxLoad) {\n      results.push({\n        json: {\n          key: issue.key,\n          issuetype: issue.issuetype,\n          project: issue.project,\n          description: issue.description,\n          predicted_deadline_days: issue.predicted_deadline_days,\n          chosen_assignee_name: rec.assignee,\n          chosen_assignee_accountId: rec.accountId\n        }\n      });\n      assigned = true;\n      break;\n    }\n  }\n  if (assigned) continue;\n\n  // ---- Step 3: fallback to least-loaded person ----\n  const sorted = Object.entries(workload).sort((a, b) => a[1] - b[1]); // [ [accountId, load], ... ]\n  const fallbackId = sorted[0][0];\n  const fallbackName = resolveName(issue, fallbackId);\n\n  results.push({\n    json: {\n      key: issue.key,\n      issuetype: issue.issuetype,\n      project: issue.project,\n      description: issue.description,\n      predicted_deadline_days: issue.predicted_deadline_days,\n      chosen_assignee_name: fallbackName,\n      chosen_assignee_accountId: fallbackId\n    }\n  });\n\n}\n\n// Output one item per issue\nreturn results;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2544,
+        512
+      ],
+      "id": "e3bbe722-fd9e-4b2c-bc15-9828e42eda9f",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build workload map\nconst issues = $input.all();\n\nconst workload = {};   // { assigneeAccountId: totalStoryPoints }\n\nfor (const item of issues) {\n  const issue = item.json;\n  const fields = issue.fields || {};\n\n  const assignee = fields.assignee?.accountId;\n  const sp = Number(fields.customfield_10016 || 0);\n\n  if (!assignee) continue;\n\n  if (!workload[assignee]) workload[assignee] = 0;\n  workload[assignee] += sp;\n}\n\n// Export workload\nreturn [\n  {\n    json: {\n      workload\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2096,
+        512
+      ],
+      "id": "cbdbb77f-b5ec-4c92-a0a3-23a98d7e101d",
+      "name": "Workload Map"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://192.168.1.2:5000/predict/all",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "=[\n  {\n    \"key\": \"{{$json.key}}\",\n    \"issuetype\": \"{{$json.fields.issuetype.name}}\",\n\n    \"priorityid\": {{$json.fields.priority.id}} ,\n    \"storypoint\": {{$json.fields.customfield_10016 || 0}},\n\n    \"project\": \"{{$json.fields.project.key}}\",\n    \"summary\": \"{{$json.fields.summary}}\"\n  }\n]\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1792,
+        336
+      ],
+      "id": "08bb4232-a508-47bb-9152-4d980c49e9fe",
+      "name": "Call Prediction ML API"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Incoming items list (exactly like the array you posted)\nconst items = $input.all().map(i => i.json);\n\n// --- 2. Mapping ML -> Jira accountId ---\nconst accountIdMap = {\n  \"Maxim Khutornenko\": \"712020:a7bdea09-c0da-4947-93d0-930e78e73cdc\",\n  \"Bill Farner\": \"712020:f137c0bd-dcd9-4412-8889-fdaf9320ae89\",\n  \"Kevin Sweeney\": \"712020:75109ef5-e134-4bfa-a9f1-3d03bb2bd6f1\",\n  \"Mark Chu-Carroll\": \"712020:560661ed-2a0e-459b-8a14-be8dab180ed7\",\n  \"Zameer Manji\": \"712020:72077b13-cbe8-4c57-949d-4d2d7d5f863a\",\n  \"Joshua Cohen\": \"712020:74ced783-3e5a-47ee-a593-9a397401feae\",\n  \"Brian Wickman\": \"712020:1fd28454-6451-4794-95b8-160e5609c212\",\n  \"David McLaughlin\": \"712020:ef3a24c5-e3df-461a-b103-8e5df325f378\",\n  \"Joe Smith\": \"712020:55181ba0-300b-4a1e-8070-394b0563b15b\",\n  \"Suman Karumuri\": \"712020:ab5b625b-eded-4e65-b44b-86a31754ccc1\",\n  \"Santhosh Kumar Shanmugham\": \"712020:89a01cf1-dec9-4dbd-b938-be01d789ff3f\",\n  \"Mehrdad Nurolahzade\": \"712020:574df6c0-e9ec-4c87-9bfd-6e228d636def\",\n  \"Kai Huang\": \"712020:ad9a4027-702d-4075-9c97-d4cf56a1e6aa\",\n  \"Dominic Hamon\": \"712020:77ed03af-6b83-4da4-a6ba-7e70c70699b6\",\n  \"Stephan Erb\": \"712020:367c47e2-8fa4-4c99-a06a-b69630063677\",\n  \"Benjamin Mahler\": \"712020:366caf22-352e-4bdb-bfff-745b3d6a2ecf\"\n};\n\n// Utility: Remove leading \"=\" from Jira key/project/issuetype\nfunction cleanString(v) {\n  if (typeof v !== \"string\") return v;\n  return v.startsWith(\"=\") ? v.substring(1) : v;\n}\n\nconst out = [];\n\nfor (const item of items) {\n  const cleanedKey = cleanString(item.key);\n  const cleanedProject = cleanString(item.project);\n  const cleanedType = cleanString(item.issuetype);\n\n  // Map recommended assignee → accountId\n  const recommendedName = item.recommended_assignee;\n  const recommendedAccountId = accountIdMap[recommendedName] ?? null;\n\n  // Convert top_k list → accountId\n  const topKConverted = item.top_k_recommendations.map(rec => ({\n    assignee: rec.assignee,\n    accountId: accountIdMap[rec.assignee] ?? null,\n    probability: rec.probability\n  }));\n\n  out.push({\n    json: {\n      key: cleanedKey,\n      issuetype: cleanedType,\n      project: cleanedProject,\n      description: item.description,\n      predicted_deadline_days: item.predicted_deadline_days,\n\n      recommended_assignee_name: recommendedName,\n      recommended_assignee_accountId: recommendedAccountId,\n\n      top_k_recommendations: topKConverted\n    }\n  });\n}\n\nreturn out;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2192,
+        320
+      ],
+      "id": "b7a88a7c-b7be-49fd-bed1-405000f7b658",
+      "name": "Convert to Account ID"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "options": {
+          "jql": "=project = TKTI\nAND sprint in openSprints()\nAND statusCategory != Done"
+        }
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        1792,
+        512
+      ],
+      "id": "94d3d5c0-1574-426a-907c-67dcda964976",
+      "name": "Get many issues1",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "NhtNxTmJwWlcpCHC",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2352,
+        448
+      ],
+      "id": "a2b5fbe8-affc-4f7d-a88f-e7e62447cd3c",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://schtig.atlassian.net/rest/api/3/issue/{{$json.subtaskKey}}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "jiraSoftwareCloudApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"fields\": {\n    \"duedate\": \"{{$json.finalDueDate}}\"\n  }\n}\n",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2336,
+        -48
+      ],
+      "id": "c00cae72-8820-4e7d-bb42-e71e8ca92de7",
+      "name": "Inherit Due Date",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "NhtNxTmJwWlcpCHC",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://schtig.atlassian.net/rest/api/3/issue/{{$json.key}}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "jiraSoftwareCloudApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"fields\": {\n    \"duedate\": \"{{ new Date(Date.now() + ($json.predicted_deadline_days * 86400000)).toISOString().slice(0,10) }}\"\n  }\n}\n",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2768,
+        624
+      ],
+      "id": "98414f19-c6e1-4ba8-9f13-8fcd730a07de",
+      "name": "Update Due Date",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "NhtNxTmJwWlcpCHC",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "issueKey": "={{ $json.key }}",
+        "updateFields": {
+          "description": "={{ $json.description }}"
+        }
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        2336,
+        -384
+      ],
+      "id": "aa352ea6-62f7-480e-9215-46e9a78575e0",
+      "name": "Update Description",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "NhtNxTmJwWlcpCHC",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c8c8b8ea-9f12-48b6-bed2-2799adf6b661",
+              "leftValue": "={{ $json.needsDescription }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1584,
+        32
+      ],
+      "id": "d1f715ec-c20f-4f5f-9c15-650e9a23654b",
+      "name": "Check or Create Description"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0f0c7d71-0a8d-4a7b-b8a4-7021409a94a8",
+              "leftValue": "={{ $json.needsAssignee }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1584,
+        192
+      ],
+      "id": "ffc3eb81-30d7-46ce-a14b-38a518d9bd1e",
+      "name": "Check or Assign Issue"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "cd25e251-43b4-4505-a01c-3ca22177480f",
+              "leftValue": "={{ $json.needsDescription }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1712,
+        -384
+      ],
+      "id": "26dd09f0-dd0e-43af-a437-aabddcf7bec3",
+      "name": "Check or Create Description (subtask)"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://192.168.1.2:6000/generate-description",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"key\": \"{{$json.key}}\",\n  \"summary\": \"{{$json.fields.summary}}\",\n  \"issuetype\": \"{{$json.fields.issuetype.name}}\",\n  \"labels\": \"{{$json.labels}}\",\n  \"project\": \"{{$json.fields.project.key}}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2032,
+        -352
+      ],
+      "id": "33b5e2c5-da6a-4e40-80a0-1fcd198d072d",
+      "name": "Call Description ML API (subtask)"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all().map(i => i.json);\n\nconst parents = [];\nconst subtasks = [];\n\n// Separate parent issues vs subtasks\nfor (const item of items) {\n  const fields = item.fields || {};\n\n  if (fields.issuetype?.subtask === true) {\n    // It's a subtask\n    subtasks.push(item);\n  } else {\n    // It's a parent issue\n    parents.push(item);\n  }\n}\n\n// Build parent map: parentKey → parentFields\nconst parentMap = {};\nfor (const p of parents) {\n  parentMap[p.key] = {\n    assignee: p.Assignee || null,\n    duedate: p[\"Due date\"] || p.duedate || null,\n    labels: p.Labels || []\n  };\n}\n\nconst out = [];\n\nfor (const sub of subtasks) {\n  const sf = sub.fields || {};\n\n  const subtaskKey = sub.key;\n  const subtaskId = sub.id || null;\n\n  const parentKey = sf.parent?.key;\n  const parent = parentMap[parentKey] || {};\n\n  const finalAssignee = sf.assignee || parent.assignee || null;\n  const finalDueDate = sf.duedate || parent.duedate || null;\n\n  const finalLabels = [\n    ...(sf.labels || []),\n    ...(parent.labels || []),\n  ];\n\n  out.push({\n    json: {\n      subtaskKey,\n      subtaskId,\n      parentKey,\n      finalAssignee,\n      finalDueDate,\n      finalLabels\n    }\n  });\n}\n\nreturn out;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2128,
+        -128
+      ],
+      "id": "cc135f19-2ef1-4036-99aa-713a7acf9bad",
+      "name": "Update Subtask From Parent"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst out = [];\n\nfor (const item of items) {\n  const ref = item.json.ref || \"\";\n  const match = ref.match(/^refs\\/heads\\/(.+)$/);\n\n  if (!match) continue; // skip if invalid ref\n\n  const branchName = match[1];\n\n  // Extract Jira key (SCRUM-9, SCRUM-7, etc.)\n  const issueKey = branchName.split(\"-\")[0] + \"-\" + branchName.split(\"-\")[1];\n\n  // Build GitHub link\n  const githubLink = `https://github.com/MRHP1/N8N-IntelliFlow/tree/${branchName}`;\n\n  out.push({\n    json: {\n      key: issueKey,\n      branchName,\n      githubLink\n    }\n  });\n}\n\nreturn out;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2720,
+        864
+      ],
+      "id": "032142fa-bd5e-437b-9ed2-565eb6664861",
+      "name": "Make Branch Links for JIRA"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.github.com/repos/MRHP1/N8N-IntelliFlow/git/refs",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"ref\": \"refs/heads/{{$json.branchName}}\",\n  \"sha\": \"{{$json.sha}}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2512,
+        864
+      ],
+      "id": "928886ee-c6f6-49f5-bc98-cf47977698ad",
+      "name": "Create Github Branches",
+      "credentials": {
+        "githubApi": {
+          "id": "iJsRsESNnNZz4TXI",
+          "name": "GitHub account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "issueKey": "={{ $json.key }}",
+        "updateFields": {
+          "customFieldsUi": {
+            "customFieldsValues": [
+              {
+                "fieldId": {
+                  "__rl": true,
+                  "value": "customfield_10071",
+                  "mode": "id"
+                },
+                "fieldValue": "={{ $json.githubLink }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        2928,
+        864
+      ],
+      "id": "22da5859-3ca8-470c-8dd3-12632e4daf7c",
+      "name": "Update JIRA Branch Link",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "NhtNxTmJwWlcpCHC",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();   // <-- get ALL incoming items\nconst out = [];\n\nfor (const item of items) {\n  const issue = item.json;\n  const fields = issue.fields || {};\n\n  const branchLink = fields[\"customfield_10071\"]; // your branch link CF\n  const key = issue.key;\n  const summary = fields.summary || \"\";\n\n  // sanitize summary → lowercase, hyphens only\n  const clean = summary\n    .toLowerCase()\n    .replace(/[^a-z0-9]+/g, \"-\")\n    .replace(/^-+|-+$/g, \"\");\n\n  // final branch name\n  const branchName = `${key}-${clean}`;\n\n  out.push({\n    json: {\n      key,\n      summary,\n      branchName,\n      branchLink,\n      needsBranch: !branchLink\n    }\n  });\n}\n\nreturn out;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1840,
+        704
+      ],
+      "id": "6c73e2d3-8808-4419-86dd-63c0d3b6ed35",
+      "name": "Make Branch Name"
+    },
+    {
+      "parameters": {
+        "url": "https://api.github.com/repos/MRHP1/N8N-IntelliFlow/git/ref/heads/main",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            },
+            {
+              "name": "User-Agent",
+              "value": "n8n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1728,
+        928
+      ],
+      "id": "42b7ae54-82ee-4749-90c8-3ba250d0a783",
+      "name": "Get Github SHA",
+      "credentials": {
+        "githubApi": {
+          "id": "Jv0Ke1vSWSH9rmVf",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Find the GitHub SHA item\nconst shaItem = $input.all().find(i => i.json.object?.sha);\n\nif (!shaItem) {\n  throw new Error(\"SHA not found in input!\");\n}\n\nconst sha = shaItem.json.object.sha;\n\n// Return the SHA for all next nodes\nreturn [{ json: { sha } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1936,
+        928
+      ],
+      "id": "626c11a5-be1e-435a-b0de-b3cbc66fbff0",
+      "name": "Provide Single SHA"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2272,
+        880
+      ],
+      "id": "a0c49ffc-9ff7-499b-8f96-d7269c4ae1b7",
+      "name": "Branch Name + SHA"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "3e3c1529-63f4-4666-aca3-a2e86b467498",
+              "leftValue": "={{ $json.needsBranch }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1584,
+        672
+      ],
+      "id": "54e34742-85e1-4405-9743-2306e9cc5062",
+      "name": "Check or Create Branch Link"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get many issues",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many issues": {
+      "main": [
+        [
+          {
+            "node": "Build JQL for subtasks of those parents",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Subtask + Parent Issue",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Is Subtask?": {
+      "main": [
+        [
+          {
+            "node": "Get Parent Issue",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Subtask + Full Issue",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Check or Create Description (subtask)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get many issues1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Check or Create Description",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Check or Assign Issue",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Check or Create Branch Link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Parent Issue": {
+      "main": [
+        [
+          {
+            "node": "Subtask + Full Issue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build JQL for subtasks of those parents": {
+      "main": [
+        [
+          {
+            "node": "Get Subtasks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Subtasks": {
+      "main": [
+        [
+          {
+            "node": "Subtask + Parent Issue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Issues": {
+      "main": [
+        [
+          {
+            "node": "Is Subtask?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Description ML API": {
+      "main": [
+        [
+          {
+            "node": "Desc + Pred",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Subtask + Full Issue": {
+      "main": [
+        [
+          {
+            "node": "Update Subtask From Parent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Subtask + Parent Issue": {
+      "main": [
+        [
+          {
+            "node": "Issues",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Desc + Pred": {
+      "main": [
+        [
+          {
+            "node": "Convert to Account ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workload Map": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Call Prediction ML API": {
+      "main": [
+        [
+          {
+            "node": "Desc + Pred",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Convert to Account ID": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many issues1": {
+      "main": [
+        [
+          {
+            "node": "Workload Map",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Update an issue1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Update Due Date",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check or Create Description": {
+      "main": [
+        [
+          {
+            "node": "Call Description ML API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check or Assign Issue": {
+      "main": [
+        [
+          {
+            "node": "Call Prediction ML API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check or Create Description (subtask)": {
+      "main": [
+        [
+          {
+            "node": "Call Description ML API (subtask)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Description ML API (subtask)": {
+      "main": [
+        [
+          {
+            "node": "Update Description",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Subtask From Parent": {
+      "main": [
+        [
+          {
+            "node": "Update an issue",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Inherit Due Date",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Make Branch Links for JIRA": {
+      "main": [
+        [
+          {
+            "node": "Update JIRA Branch Link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Github Branches": {
+      "main": [
+        [
+          {
+            "node": "Make Branch Links for JIRA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Make Branch Name": {
+      "main": [
+        [
+          {
+            "node": "Branch Name + SHA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Github SHA": {
+      "main": [
+        [
+          {
+            "node": "Provide Single SHA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Provide Single SHA": {
+      "main": [
+        [
+          {
+            "node": "Branch Name + SHA",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Branch Name + SHA": {
+      "main": [
+        [
+          {
+            "node": "Create Github Branches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check or Create Branch Link": {
+      "main": [
+        [
+          {
+            "node": "Make Branch Name",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Github SHA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "95a7232d-e400-41b1-bb91-11eb6c0d7244",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5c6cfe348acb8ac6f31c39d09d3546de542a338deeccc850168010c490833f2b"
+  },
+  "id": "3BXc1rGGcvhWkz2b",
+  "tags": []
+}
