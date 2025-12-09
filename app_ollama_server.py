@@ -1,7 +1,6 @@
 from flask import Flask, request, jsonify
 from typing import Dict, Any
 import ollama
-import random
 
 app = Flask(__name__)
 
@@ -21,25 +20,60 @@ def ollama_generate(prompt: str, model: str = OLLAMA_MODEL) -> str:
         return ""
 
 
-def generate_description(data: Dict[str, Any]) -> str:
-    summary = data.get("summary", "").strip()
-    issuetype = data.get("issuetype", "Task")
-    labels = data.get("labels", [])
-    project = data.get("project", "Unknown")
+def normalize_labels(labels):
+    """
+    Fix labels format because n8n sometimes sends:
+    - a list → ["bug", "backend"]
+    - a string → "['bug','backend']"
+    - empty string
+    """
 
-    # extract first label
+    if labels is None:
+        return []
+
+    # Already list
     if isinstance(labels, list):
-        label = labels[0].lower() if labels else "general"
-    else:
-        label = str(labels).lower()
+        return [str(x).strip() for x in labels]
 
+    # Try convert string like "['bug','backend']"
+    if isinstance(labels, str):
+        cleaned = labels.strip()
+        if cleaned.startswith("[") and cleaned.endswith("]"):
+            try:
+                import ast
+                lst = ast.literal_eval(cleaned)
+                if isinstance(lst, list):
+                    return [str(x).strip() for x in lst]
+            except:
+                pass
+        # fallback → treat as single label
+        return [cleaned]
+
+    # fallback
+    return [str(labels)]
+
+
+def generate_description(data: Dict[str, Any]) -> str:
+    summary = (data.get("summary") or "").strip()
+    issuetype = data.get("issuetype", "Task")
+    project = data.get("project", "UNKNOWN")
+
+    # NEW: reviewer feedback from PR review
+    review_feedback = (data.get("review_feedback") or "").strip()
+
+    labels = normalize_labels(data.get("labels", []))
+    label = labels[0] if labels else "general"
+
+    # -------- PROMPT --------
     prompt = f"""
 Generate a concise (under {MAX_WORDS} words) Jira issue description.
 
 Project: {project}
 Issue Type: {issuetype}
-Label: {label}
+Primary Label: {label}
+
 Summary: {summary}
+Reviewer Feedback: {review_feedback}
 
 Guidelines:
 - Keep it technical and factual.
@@ -52,22 +86,22 @@ Guidelines:
 - No instructions or meta commentary.
 - Keep it relevant to the issue type and label.
 - Keep it in a single paragraph format.
+- Integrate a "Feedback" section for reviewer feedback if provided.
 """
 
     desc = ollama_generate(prompt)
-    return desc.strip()
+    return desc.replace("\n", " ").strip()
 
 
-# ---------- API ROUTE ----------
+# ---------- API ----------
 @app.route("/generate-description", methods=["POST"])
 def api_generate():
     try:
         data = request.get_json(force=True)
         desc = generate_description(data)
 
-        # return description + key (NEW)
         return jsonify({
-            "key": data.get("key", None),
+            "key": data.get("key"),
             "description": desc
         })
 

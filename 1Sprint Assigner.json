@@ -15,7 +15,7 @@
       "typeVersion": 1.2,
       "position": [
         0,
-        0
+        984
       ],
       "id": "75d66863-fb9b-4254-be02-65d8ac3c3e9c",
       "name": "Schedule Trigger"
@@ -30,8 +30,8 @@
       "type": "n8n-nodes-base.jira",
       "typeVersion": 1,
       "position": [
-        208,
-        0
+        224,
+        432
       ],
       "id": "6d58428c-b44a-4761-af51-89d74f87f211",
       "name": "Get many issues",
@@ -70,8 +70,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1136,
-        0
+        1344,
+        48
       ],
       "id": "22fd79a4-7061-4331-bf70-b8c14764ae30",
       "name": "Is Subtask?"
@@ -86,8 +86,8 @@
       "type": "n8n-nodes-base.jira",
       "typeVersion": 1,
       "position": [
-        1712,
-        -224
+        1568,
+        -192
       ],
       "id": "e7f6b946-979e-49cf-ad02-5ff122e25fe2",
       "name": "Get Parent Issue",
@@ -105,8 +105,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        384,
-        -160
+        448,
+        360
       ],
       "id": "2eee77cf-cb34-4a5b-b3aa-4a25882af79a",
       "name": "Build JQL for subtasks of those parents"
@@ -121,8 +121,8 @@
       "type": "n8n-nodes-base.jira",
       "typeVersion": 1,
       "position": [
-        608,
-        -160
+        672,
+        360
       ],
       "id": "acdfc60f-39c4-4186-85d2-5ae071e11ee6",
       "name": "Get Subtasks",
@@ -150,8 +150,8 @@
       "type": "n8n-nodes-base.jira",
       "typeVersion": 1,
       "position": [
-        2336,
-        -224
+        2240,
+        -216
       ],
       "id": "4d87a697-ddd0-44d3-b047-2205dcf9eb87",
       "name": "Update an issue",
@@ -169,8 +169,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        976,
-        -16
+        1120,
+        432
       ],
       "id": "f8bb7734-a96d-439f-9fc2-6be6b44fb50a",
       "name": "Issues"
@@ -188,33 +188,18 @@
       "typeVersion": 4.2,
       "position": [
         1792,
-        176
+        120
       ],
       "id": "a93832a7-0f89-4dde-b0a3-15ee733190ab",
       "name": "Call Description ML API"
-    },
-    {
-      "parameters": {
-        "mode": "combine",
-        "fieldsToMatchString": "key",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3.2,
-      "position": [
-        2032,
-        256
-      ],
-      "id": "72c10cbd-cea4-4d14-968f-34c98a96ad4f",
-      "name": "Desc + Pred"
     },
     {
       "parameters": {},
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        1936,
-        -128
+        1792,
+        -120
       ],
       "id": "60c32b38-3e30-4a83-8e86-30939a4eee2a",
       "name": "Subtask + Full Issue"
@@ -224,8 +209,8 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        784,
-        -16
+        896,
+        432
       ],
       "id": "9137d732-320e-4434-8d49-11d88928ecff",
       "name": "Subtask + Parent Issue"
@@ -246,8 +231,8 @@
       "type": "n8n-nodes-base.jira",
       "typeVersion": 1,
       "position": [
-        2768,
-        400
+        2688,
+        312
       ],
       "id": "eb4f4a91-eba6-45f2-b0ad-47dc9f74a427",
       "name": "Update an issue1",
@@ -265,8 +250,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2544,
-        512
+        2464,
+        408
       ],
       "id": "e3bbe722-fd9e-4b2c-bc15-9828e42eda9f",
       "name": "Code in JavaScript1"
@@ -278,8 +263,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2096,
-        512
+        2016,
+        504
       ],
       "id": "cbdbb77f-b5ec-4c92-a0a3-23a98d7e101d",
       "name": "Workload Map"
@@ -297,7 +282,7 @@
       "typeVersion": 4.2,
       "position": [
         1792,
-        336
+        312
       ],
       "id": "08bb4232-a508-47bb-9152-4d980c49e9fe",
       "name": "Call Prediction ML API"
@@ -309,8 +294,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2192,
-        320
+        2016,
+        312
       ],
       "id": "b7a88a7c-b7be-49fd-bed1-405000f7b658",
       "name": "Convert to Account ID"
@@ -326,7 +311,7 @@
       "typeVersion": 1,
       "position": [
         1792,
-        512
+        504
       ],
       "id": "94d3d5c0-1574-426a-907c-67dcda964976",
       "name": "Get many issues1",
@@ -342,8 +327,8 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        2352,
-        448
+        2240,
+        408
       ],
       "id": "a2b5fbe8-affc-4f7d-a88f-e7e62447cd3c",
       "name": "Merge"
@@ -370,8 +355,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2336,
-        -48
+        2240,
+        24
       ],
       "id": "c00cae72-8820-4e7d-bb42-e71e8ca92de7",
       "name": "Inherit Due Date",
@@ -404,8 +389,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2768,
-        624
+        2688,
+        504
       ],
       "id": "98414f19-c6e1-4ba8-9f13-8fcd730a07de",
       "name": "Update Due Date",
@@ -427,7 +412,7 @@
       "type": "n8n-nodes-base.jira",
       "typeVersion": 1,
       "position": [
-        2336,
+        2016,
         -384
       ],
       "id": "aa352ea6-62f7-480e-9215-46e9a78575e0",
@@ -467,8 +452,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1584,
-        32
+        1568,
+        120
       ],
       "id": "d1f715ec-c20f-4f5f-9c15-650e9a23654b",
       "name": "Check or Create Description"
@@ -501,8 +486,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1584,
-        192
+        1568,
+        312
       ],
       "id": "ffc3eb81-30d7-46ce-a14b-38a518d9bd1e",
       "name": "Check or Assign Issue"
@@ -535,7 +520,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1712,
+        1568,
         -384
       ],
       "id": "26dd09f0-dd0e-43af-a437-aabddcf7bec3",
@@ -553,21 +538,21 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2032,
-        -352
+        1792,
+        -384
       ],
       "id": "33b5e2c5-da6a-4e40-80a0-1fcd198d072d",
       "name": "Call Description ML API (subtask)"
     },
     {
       "parameters": {
-        "jsCode": "const items = $input.all().map(i => i.json);\n\nconst parents = [];\nconst subtasks = [];\n\n// Separate parent issues vs subtasks\nfor (const item of items) {\n  const fields = item.fields || {};\n\n  if (fields.issuetype?.subtask === true) {\n    // It's a subtask\n    subtasks.push(item);\n  } else {\n    // It's a parent issue\n    parents.push(item);\n  }\n}\n\n// Build parent map: parentKey → parentFields\nconst parentMap = {};\nfor (const p of parents) {\n  parentMap[p.key] = {\n    assignee: p.Assignee || null,\n    duedate: p[\"Due date\"] || p.duedate || null,\n    labels: p.Labels || []\n  };\n}\n\nconst out = [];\n\nfor (const sub of subtasks) {\n  const sf = sub.fields || {};\n\n  const subtaskKey = sub.key;\n  const subtaskId = sub.id || null;\n\n  const parentKey = sf.parent?.key;\n  const parent = parentMap[parentKey] || {};\n\n  const finalAssignee = sf.assignee || parent.assignee || null;\n  const finalDueDate = sf.duedate || parent.duedate || null;\n\n  const finalLabels = [\n    ...(sf.labels || []),\n    ...(parent.labels || []),\n  ];\n\n  out.push({\n    json: {\n      subtaskKey,\n      subtaskId,\n      parentKey,\n      finalAssignee,\n      finalDueDate,\n      finalLabels\n    }\n  });\n}\n\nreturn out;\n"
+        "jsCode": "const items = $input.all().map(i => i.json);\n\nconst parents = [];\nconst subtasks = [];\n\n// Separate parent issues vs subtasks\nfor (const item of items) {\n  const fields = item.fields || {};\n\n  if (fields.issuetype?.subtask === true) {\n    // It's a subtask\n    subtasks.push(item);\n  } else {\n    // It's a parent issue\n    parents.push(item);\n  }\n}\n\n// Build parent map: parentKey → parentFields\nconst parentMap = {};\nfor (const p of parents) {\n  parentMap[p.key] = {\n    assignee: p.Assignee || null,\n    duedate: p[\"Due date\"] || p.duedate || null,\n    labels: p.Labels || []\n  };\n}\n\nconst out = [];\n\nfor (const sub of subtasks) {\n  const sf = sub.fields || {};\n\n  const subtaskKey = sub.key;\n  const subtaskId = sub.id || null;\n\n  const parentKey = sf.parent?.key;\n  const parent = parentMap[parentKey] || {};\n\n  const finalAssignee = parent.assignee || null;\n  const finalDueDate = sf.duedate || parent.duedate || null;\n\n  const finalLabels = [\n    ...(sf.labels || []),\n    ...(parent.labels || []),\n  ];\n\n  out.push({\n    json: {\n      subtaskKey,\n      subtaskId,\n      parentKey,\n      finalAssignee,\n      finalDueDate,\n      finalLabels\n    }\n  });\n}\n\nreturn out;\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2128,
-        -128
+        2016,
+        -120
       ],
       "id": "cc135f19-2ef1-4036-99aa-713a7acf9bad",
       "name": "Update Subtask From Parent"
@@ -579,8 +564,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2720,
-        864
+        2464,
+        792
       ],
       "id": "032142fa-bd5e-437b-9ed2-565eb6664861",
       "name": "Make Branch Links for JIRA"
@@ -599,8 +584,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2512,
-        864
+        2240,
+        792
       ],
       "id": "928886ee-c6f6-49f5-bc98-cf47977698ad",
       "name": "Create Github Branches",
@@ -633,8 +618,8 @@
       "type": "n8n-nodes-base.jira",
       "typeVersion": 1,
       "position": [
-        2928,
-        864
+        2688,
+        792
       ],
       "id": "22da5859-3ca8-470c-8dd3-12632e4daf7c",
       "name": "Update JIRA Branch Link",
@@ -652,8 +637,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1840,
-        704
+        1792,
+        696
       ],
       "id": "6c73e2d3-8808-4419-86dd-63c0d3b6ed35",
       "name": "Make Branch Name"
@@ -681,8 +666,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1728,
-        928
+        1568,
+        888
       ],
       "id": "42b7ae54-82ee-4749-90c8-3ba250d0a783",
       "name": "Get Github SHA",
@@ -700,8 +685,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1936,
-        928
+        1792,
+        888
       ],
       "id": "626c11a5-be1e-435a-b0de-b3cbc66fbff0",
       "name": "Provide Single SHA"
@@ -715,8 +700,8 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        2272,
-        880
+        2016,
+        792
       ],
       "id": "a0c49ffc-9ff7-499b-8f96-d7269c4ae1b7",
       "name": "Branch Name + SHA"
@@ -749,11 +734,483 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1584,
-        672
+        1344,
+        792
       ],
       "id": "54e34742-85e1-4405-9743-2306e9cc5062",
       "name": "Check or Create Branch Link"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "issueKey": "={{ $json.key }}",
+        "updateFields": {
+          "description": "={{ $json.description }}"
+        }
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        2016,
+        120
+      ],
+      "id": "b5939aa8-9366-407a-9c98-f04c9c7e34ed",
+      "name": "Update Description1",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "NhtNxTmJwWlcpCHC",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        224,
+        984
+      ],
+      "id": "e7b74e0c-23ed-487d-848c-ba0716f8ed95",
+      "name": "Get Issues Status",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "NhtNxTmJwWlcpCHC",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst out = [];\n\nfor (const item of items) {\n  const issue = item.json;\n  const fields = issue.fields || {};\n\n  const assignee = fields.assignee;\n  const duedate = fields.duedate;\n  const description = fields.description;\n\n  const labels = fields.labels || [];\n  const statusName = fields.status?.name || \"\";\n  const isSubtask = fields.issuetype?.subtask === true;\n\n  // Parent key for subtasks\n  const parentKey = isSubtask ? fields.parent?.key || null : null;\n\n  // Branch field\n  const branchField = fields.customfield_10071;\n  const hasBranch = !!branchField;\n  const branchLink = branchField || null;\n\n  // -------------------------------------------------------\n  // FILLED CHECKS\n  // -------------------------------------------------------\n  const isAssigneeFilled = !!assignee;\n  const isDeadlineFilled = !!duedate;\n  const isDescriptionFilled =\n    !!description && description.toString().trim().length >= 30;\n\n  const isToDoStatus = statusName === \"To Do\";\n\n  // -------------------------------------------------------\n  // ONLY INCLUDE ISSUES THAT ARE FULLY COMPLETE & IN TO DO\n  // -------------------------------------------------------\n  const isReady =\n    isAssigneeFilled &&\n    isDeadlineFilled &&\n    isDescriptionFilled &&\n    isToDoStatus;\n\n  if (isReady) {\n    out.push({\n      json: {\n        key: issue.key,\n\n        // status reference\n        statusName,\n\n        // completeness flags\n        isAssigneeFilled,\n        isDeadlineFilled,\n        isDescriptionFilled,\n        isToDoStatus,\n\n        // branch info (optional)\n        hasBranch,\n        branchLink,\n\n        isSubtask,\n        parentKey,\n        labels\n      }\n    });\n  }\n}\n\nreturn out;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        984
+      ],
+      "id": "a901e17b-a071-434f-84c4-cf87f80f9029",
+      "name": "Format Issues"
+    },
+    {
+      "parameters": {
+        "url": "={{$json.url}}/reviews",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        448,
+        1344
+      ],
+      "id": "6e791508-4f36-4c4b-9ae3-ab261561974d",
+      "name": "Get All PR Reviews",
+      "alwaysOutputData": false,
+      "credentials": {
+        "githubApi": {
+          "id": "iJsRsESNnNZz4TXI",
+          "name": "GitHub account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.github.com/repos/MRHP1/N8N-IntelliFlow/pulls",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        224,
+        1272
+      ],
+      "id": "4dc73ed1-df21-4cac-9bba-c04a04915dba",
+      "name": "Get All PR's",
+      "alwaysOutputData": false,
+      "credentials": {
+        "githubApi": {
+          "id": "iJsRsESNnNZz4TXI",
+          "name": "GitHub account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "fhp0kud7x@mozmail.com",
+        "toEmail": "fhp0kud7x@mozmail.com",
+        "subject": "=PR Review Pending: Action Required for  {{ $('If Status Unreviewed').item.json.jiraKey }}",
+        "html": "=Hi,\nYou still have a pending PR review.\n\nPR Link:\n{{ $('If Status Unreviewed').item.json.htmlUrl }}\n\nPlease review it as soon as possible.\n\nThank you,\nN8N–IntelliFlow Bot\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1568,
+        1080
+      ],
+      "id": "6167ff3f-f7bc-41bd-b5a3-9bd97b7ab29b",
+      "name": "Send email",
+      "webhookId": "4f7ba582-a2fa-4683-b662-dc9de9c2ae46",
+      "credentials": {
+        "smtp": {
+          "id": "ZJdzxTmmN4sq6SXE",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c3dca607-80f7-4c6f-9b93-be2799b2c242",
+              "leftValue": "={{ $json.state }}",
+              "rightValue": "open",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1120,
+        1272
+      ],
+      "id": "2e6de3ee-6375-43e5-8299-86312197f494",
+      "name": "If Status Unreviewed"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "advanced": true,
+        "mergeByFields": {
+          "values": [
+            {
+              "field1": "url",
+              "field2": "pull_request_url"
+            }
+          ]
+        },
+        "joinMode": "keepEverything",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        672,
+        1272
+      ],
+      "id": "4ee88134-4a1b-4c96-833f-5514b364e7b5",
+      "name": "Check If PR Reviewed"
+    },
+    {
+      "parameters": {
+        "jsCode": "let items = $input.all();\n\n// Normalize input: detect embedded array or multiple items\nlet arr = [];\nif (items.length > 1) {\n    arr = items.map(i => i.json);\n} else if (Array.isArray(items[0].json)) {\n    arr = items[0].json;\n} else {\n    arr = [items[0].json];\n}\n\n// Build output\nlet out = [];\n\nfor (const pr of arr) {\n    const url = pr.url || null;\n    const number = pr.number || null;\n    const state = pr.state || null;\n    const body = pr.body || null;\n    const title = pr.title || null;\n\n    // detect branch name\n    const branch = pr.head?.ref || null;\n\n    // detect jira key from branch or title\n    const jiraKey =\n        branch?.match(/[A-Z]+-\\d+/)?.[0] ||\n        title?.match(/[A-Z]+-\\d+/)?.[0] ||\n        null;\n\n    // detect review status\n    const reviewState = pr.state || null; // CHANGES_REQUESTED, APPROVED, etc.\n\n    // automation flags\n    const needsInitialReview = reviewState === \"open\";  \n    const needsFixes = reviewState === \"CHANGES_REQUESTED\";\n    const isApproved = reviewState === \"APPROVED\";\n    const isMerged = pr.merged_at ? true : false;\n    const isRejected = reviewState === \"DISMISSED\" || reviewState === \"REJECTED\";\n\n    out.push({\n        json: {\n            prNumber: number,\n            prUrl: url,\n            htmlUrl: pr.html_url || null,\n\n            title,\n            body,\n            branch,\n            jiraKey,\n\n            // PR state\n            state: pr.state,\n            isMerged,\n            isRejected,\n\n            // Review state\n            reviewState,\n            needsInitialReview,\n            needsFixes,\n            isApproved,\n\n            // Useful URLs for later workflow steps\n            commitsUrl: pr.commits_url || null,\n            issueCommentsUrl: pr.comments_url || null,\n            reviewCommentsUrl: pr.review_comments_url || null,\n            statusUrl: pr.statuses_url || null,\n        }\n    });\n}\n\nreturn out;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        1272
+      ],
+      "id": "03c4dae3-bca0-4bde-8951-a77935104906",
+      "name": "Process PR's",
+      "executeOnce": false,
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "jsCode": "let items = $input.all().map(i => i.json);\n\n// Group by PR number\nconst prMap = {};\n\nfor (const r of items) {\n    const num = r.prNumber;\n    if (!prMap[num]) prMap[num] = {\n        prNumber: num,\n        prUrl: r.prUrl,\n        htmlUrl: r.htmlUrl,\n        title: r.title,\n        branch: r.branch,\n        jiraKey: r.jiraKey,\n\n        // Collected review states\n        reviews: [],\n\n        // URLs\n        commitsUrl: r.commitsUrl,\n        issueCommentsUrl: r.issueCommentsUrl,\n        reviewCommentsUrl: r.reviewCommentsUrl,\n        statusUrl: r.statusUrl,\n    };\n\n    prMap[num].reviews.push({\n        state: r.reviewState,\n        body: r.body\n    });\n}\n\n// Build final output\nconst out = [];\n\nfor (const num in prMap) {\n    const pr = prMap[num];\n\n    const lastReview = pr.reviews[pr.reviews.length - 1] || {\n        state: null,\n        body: null\n    };\n\n    const lastState = lastReview.state;\n    const lastBody = lastReview.body;\n\n    out.push({\n        json: {\n            prNumber: pr.prNumber,\n            jiraKey: pr.jiraKey,\n            title: pr.title,\n            branch: pr.branch,\n            prUrl: pr.prUrl,\n            htmlUrl: pr.htmlUrl,\n\n            // Final review summary\n            latestReviewState: lastState,\n            latestReviewBody: lastBody,\n\n            // Automation flags\n            needsInitialReview: pr.reviews.length === 0,\n            needsFixes: lastState === \"CHANGES_REQUESTED\",\n            isApproved: lastState === \"APPROVED\",\n\n            // ML model input hooks\n            modelDescriptionInput: lastBody || \"\",\n            modelDeadlineInput: lastBody || \"\",\n\n            // URLs\n            commitsUrl: pr.commitsUrl,\n            issueCommentsUrl: pr.issueCommentsUrl,\n            reviewCommentsUrl: pr.reviewCommentsUrl,\n            statusUrl: pr.statusUrl\n        }\n    });\n}\n\nreturn out;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1344,
+        1368
+      ],
+      "id": "906971ae-ba36-4df1-bf9e-cf7c8c32e5be",
+      "name": "Check Feedback"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "issueKey": "={{ $json.jiraKey }}",
+        "updateFields": {
+          "statusId": {
+            "__rl": true,
+            "value": "2",
+            "mode": "list",
+            "cachedResultName": "Review and Testing"
+          }
+        }
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        1344,
+        1080
+      ],
+      "id": "7c88430e-e243-462b-b628-5b3cc57e214f",
+      "name": "Update Issue Status after PR",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "NhtNxTmJwWlcpCHC",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "99d1ecb9-a0b6-4991-9e7f-17a492cecaeb",
+              "leftValue": "={{ $json.needsFixes }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1568,
+        1368
+      ],
+      "id": "e3721d48-2ff2-4b5e-b35a-4f93ae851b7d",
+      "name": "If needsFixes"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "issueKey": "={{ $json.jiraKey }}",
+        "updateFields": {
+          "statusId": {
+            "__rl": true,
+            "value": "31",
+            "mode": "list",
+            "cachedResultName": "Done"
+          }
+        }
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        1792,
+        1464
+      ],
+      "id": "bf3a4d72-49e4-4281-b24c-e4256dbf61f1",
+      "name": "Update an issue to Done",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "NhtNxTmJwWlcpCHC",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://192.168.1.2:5000/predict/all",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "=[\n  {\n    \"key\": \"{{$json.key}}\",\n    \"issuetype\": \"{{$json.fields.issuetype.name}}\",\n\n    \"priorityid\": {{$json.fields.priority.id}} ,\n    \"storypoint\": {{$json.fields.customfield_10016 || 0}},\n\n    \"project\": \"{{$json.fields.project.key}}\",\n    \"summary\": \"{{$json.fields.summary}}\"\n  }\n]\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2016,
+        1176
+      ],
+      "id": "2b16766b-01ea-4080-9ee5-c9760535ede3",
+      "name": "Call Prediction ML API1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://192.168.1.2:6000/generate-description",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"key\": \"{{$json.key}}\",\n  \"summary\": \"{{$json.fields.summary}}\",\n  \"issuetype\": \"{{$json.fields.issuetype.name}}\",\n  \"labels\": \"={{JSON.stringify($json.fields.labels || [])}}\",\n  \"project\": \"{{$json.fields.project.key}}\",\n  \"review_feedback\": \"{{ $('If needsFixes').item.json.latestReviewBody }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2016,
+        1368
+      ],
+      "id": "25f50f59-9a8c-43fc-bfb4-bc0b5c0ad02d",
+      "name": "ML Description Regenerator"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "issueKey": "={{ $json.jiraKey }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        1792,
+        1272
+      ],
+      "id": "e306b7bf-ab97-4f23-a17a-46966f00869d",
+      "name": "Get an issue",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "NhtNxTmJwWlcpCHC",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "issueKey": "={{ $json.key }}",
+        "updateFields": {
+          "description": "={{ $json.description }}"
+        }
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        2240,
+        1368
+      ],
+      "id": "25da9419-b3de-4d69-9140-b0440904a5f4",
+      "name": "Update Feedback Description",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "NhtNxTmJwWlcpCHC",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://schtig.atlassian.net/rest/api/3/issue/{{$json.key}}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "jiraSoftwareCloudApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"fields\": {\n    \"duedate\": \"{{ new Date(Date.now() + ($json.predicted_deadline_days * 86400000)).toISOString().slice(0,10) }}\"\n  }\n}\n",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2240,
+        1176
+      ],
+      "id": "15942db2-abe3-4b17-a2ef-79d90b685bd2",
+      "name": "Update Due Date PR",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "NhtNxTmJwWlcpCHC",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "issueKey": "={{ $('If needsFixes').item.json.jiraKey }}",
+        "updateFields": {
+          "statusId": {
+            "__rl": true,
+            "value": "11",
+            "mode": "list",
+            "cachedResultName": "To Do"
+          }
+        }
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        2464,
+        1272
+      ],
+      "id": "c181ac9a-aa26-48b7-b675-bf363af858a3",
+      "name": "Status Back to To Do",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "NhtNxTmJwWlcpCHC",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "issueKey": "={{ $json.key }}",
+        "updateFields": {
+          "statusId": {
+            "__rl": true,
+            "value": "21",
+            "mode": "list",
+            "cachedResultName": "In Progress"
+          }
+        }
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        672,
+        984
+      ],
+      "id": "2ee580ba-2484-4e40-86b9-065abf54b2d4",
+      "name": "Issue Status to In Progress",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "NhtNxTmJwWlcpCHC",
+          "name": "Jira SW Cloud account"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -763,6 +1220,16 @@
         [
           {
             "node": "Get many issues",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Issues Status",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get All PR's",
             "type": "main",
             "index": 0
           }
@@ -819,11 +1286,6 @@
             "node": "Check or Assign Issue",
             "type": "main",
             "index": 0
-          },
-          {
-            "node": "Check or Create Branch Link",
-            "type": "main",
-            "index": 0
           }
         ]
       ]
@@ -868,6 +1330,11 @@
             "node": "Is Subtask?",
             "type": "main",
             "index": 0
+          },
+          {
+            "node": "Check or Create Branch Link",
+            "type": "main",
+            "index": 0
           }
         ]
       ]
@@ -876,7 +1343,7 @@
       "main": [
         [
           {
-            "node": "Desc + Pred",
+            "node": "Update Description1",
             "type": "main",
             "index": 0
           }
@@ -905,17 +1372,6 @@
         ]
       ]
     },
-    "Desc + Pred": {
-      "main": [
-        [
-          {
-            "node": "Convert to Account ID",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Workload Map": {
       "main": [
         [
@@ -931,9 +1387,9 @@
       "main": [
         [
           {
-            "node": "Desc + Pred",
+            "node": "Convert to Account ID",
             "type": "main",
-            "index": 1
+            "index": 0
           }
         ]
       ]
@@ -1128,13 +1584,207 @@
           }
         ]
       ]
+    },
+    "Get Issues Status": {
+      "main": [
+        [
+          {
+            "node": "Format Issues",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Issues": {
+      "main": [
+        [
+          {
+            "node": "Issue Status to In Progress",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get All PR Reviews": {
+      "main": [
+        [
+          {
+            "node": "Check If PR Reviewed",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Get All PR's": {
+      "main": [
+        [
+          {
+            "node": "Get All PR Reviews",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Check If PR Reviewed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Status Unreviewed": {
+      "main": [
+        [
+          {
+            "node": "Update Issue Status after PR",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Check Feedback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check If PR Reviewed": {
+      "main": [
+        [
+          {
+            "node": "Process PR's",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process PR's": {
+      "main": [
+        [
+          {
+            "node": "If Status Unreviewed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Issue Status after PR": {
+      "main": [
+        [
+          {
+            "node": "Send email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Feedback": {
+      "main": [
+        [
+          {
+            "node": "If needsFixes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If needsFixes": {
+      "main": [
+        [
+          {
+            "node": "Get an issue",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update an issue to Done",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get an issue": {
+      "main": [
+        [
+          {
+            "node": "Call Prediction ML API1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "ML Description Regenerator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ML Description Regenerator": {
+      "main": [
+        [
+          {
+            "node": "Update Feedback Description",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Prediction ML API1": {
+      "main": [
+        [
+          {
+            "node": "Update Due Date PR",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Due Date PR": {
+      "main": [
+        [
+          {
+            "node": "Status Back to To Do",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Feedback Description": {
+      "main": [
+        [
+          {
+            "node": "Status Back to To Do",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Issue Status to In Progress": {
+      "main": [
+        []
+      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "95a7232d-e400-41b1-bb91-11eb6c0d7244",
+  "versionId": "b2574d52-f139-41df-ab1a-6caed6038bbf",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "5c6cfe348acb8ac6f31c39d09d3546de542a338deeccc850168010c490833f2b"

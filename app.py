@@ -12,8 +12,8 @@ app = Flask(__name__)
 # 1️⃣ Load models
 # ============================================================
 try:
-    model_assignee = joblib.load("models/assignee_model_v3_aurora.joblib")
-    label_encoder = joblib.load("models/assignee_label_encoder_aurora.joblib")
+    model_assignee = joblib.load("models/assignee_model_v3_aurora_OS.joblib")
+    label_encoder = joblib.load("models/assignee_label_encoder_aurora_OS.joblib")
     model_deadline = joblib.load("models/deadline_model_4features.joblib")
     print("✅ Models loaded successfully.")
 except Exception as e:
