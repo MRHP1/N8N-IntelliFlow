@@ -6,20 +6,34 @@ import joblib
 import numpy as np
 import pandas as pd
 
+# Define tokenizer for model deserialization
+def comma_tokenizer(text):
+    return text.split(',')
+
 app = Flask(__name__)
 
 # ============================================================
 # 1️⃣ Load models
 # ============================================================
-# Using V7 Robust Models
+# Using v8 Robust Models (Assignee) & V9 (Deadline)
 try:
-    model_assignee = joblib.load("models/assignee_model_v7_robust.joblib")
-    label_encoder = joblib.load("models/assignee_label_encoder_v7.joblib")
-    model_deadline = joblib.load("models/deadline_model_v7_simple.joblib")
-    print("✅ Models loaded successfully (V7).")
+    model_assignee = joblib.load("models/assignee_model_v8_robust.joblib")
+    label_encoder = joblib.load("models/assignee_label_encoder_v8.joblib")
+    
+    # Load V9 Deadline Models
+    try:
+        deadline_clf = joblib.load("models/deadline_v9_classifier.joblib")
+        deadline_le = joblib.load("models/deadline_v9_label_encoder.joblib")
+        deadline_qr = joblib.load("models/deadline_v9_quantiles.joblib")
+        print("✅ Models loaded successfully (Assignee v8 + Deadline V9).")
+    except Exception as e:
+        print(f"⚠️ V9 Deadline Models not found: {e}")
+        deadline_clf, deadline_le, deadline_qr = None, None, None
+
 except Exception as e:
     print(f"❌ Error loading models: {e}")
-    model_assignee, model_deadline, label_encoder = None, None, None
+    model_assignee, label_encoder = None, None
+    deadline_clf, deadline_le, deadline_qr = None, None, None
 
 
 # ============================================================
@@ -37,11 +51,22 @@ ASSIGNEE_MAP = {
     'serb': 'Stephan Erb', 'bmahler': 'Benjamin Mahler'
 }
 
+# Priority Map for V5 Model
+PRIORITY_MAP_V5 = {
+    1: 'Blocker',
+    2: 'Critical',
+    3: 'Major',
+    4: 'Minor',
+    5: 'Trivial'
+}
+
 REQUIRED_FIELDS = {"key", "issuetype", "priorityid", "storypoint", "project", "summary"}
 
 def ensure_models_loaded():
-    if model_deadline is None or model_assignee is None or label_encoder is None:
-        raise RuntimeError("Models not loaded properly. Check models/ directory.")
+    if model_assignee is None or label_encoder is None:
+        raise RuntimeError("Assignee models not loaded properly.")
+    if deadline_clf is None:
+        raise RuntimeError("V9 Deadline models not loaded properly. Run training script first.")
 
 
 def unwrap_n8n(data):
@@ -85,13 +110,14 @@ def normalize_fields(item):
     normalized["project"] = item.get("project", "Aurora") # Default Project
     normalized["summary"] = item.get("summary", "")
     normalized["description"] = item.get("description", "")
+    normalized["components"] = item.get("components", "") # New field for V9
     normalized["status"] = item.get("status", "To Do")
 
     return normalized
 
 
 # ============================================================
-# 3️⃣ Predict Endpoint (V7 Compatible)
+# 3️⃣ Predict Endpoint (v8 Compatible)
 # ============================================================
 @app.route("/predict/all", methods=["POST"])
 def predict_all_api():
@@ -103,36 +129,68 @@ def predict_all_api():
 
         for incoming in items:
             item = normalize_fields(incoming)
-
-            # ----------------------------------------
-            # A. DEADLINE PREDICTION (V7 Random Forest)
-            # ----------------------------------------
-            # Model expects: ['storypoint', 'key', 'points_per_issue', 'complexity']
-            # We treat a single issue as a "Sprint of Size 1"
             
             story_points = item["storypoint"]
             priority = item["priorityid"]
-            
-            # Feature Engineering for Single Issue
-            complexity = story_points * (4 - priority) # Higher priority (1) -> Higher complexity multiplier? 
-            # In V7 training: complexity = storypoint * (4 - priorityid)
-            # Make sure priorityid is 1-3. If 1 is high, 4-1=3 (High weight). Correct.
-            
-            df_deadline = pd.DataFrame([{
-                'storypoint': story_points,
-                'key': 1, # Single issue count
-                'points_per_issue': story_points, # total / count
-                'complexity': complexity
-            }])
-
-            # V7 Model predicts raw days (No log transform)
-            pred_days = model_deadline.predict(df_deadline)[0]
-            
-            # Post-processing constraints
-            deadline_days = max(1, round(pred_days))
 
             # ----------------------------------------
-            # B. ASSIGNEE PREDICTION (V7 XGBoost NLP)
+            # A. DEADLINE PREDICTION (V9 Robust Model)
+            # ----------------------------------------
+            deadline_info = {
+                "class": None,
+                "interval_min": None,
+                "interval_avg": None,
+                "interval_max": None
+            }
+            
+            if deadline_clf:
+                try:
+                    # Prepare Input for V9
+                    # V9 expects: ['story_points', 'issuetype', 'priority', 'project', 'text_feature', 'components']
+                    text_feature = f"{item['summary']} {item['description']}".strip()
+                    
+                    df_v9 = pd.DataFrame([{
+                        'story_points': story_points,
+                        'issuetype': item['issuetype'],
+                        'priority': item.get('priority', 'Major'), # Raw string priority if available? App default is float ID
+                        'project': item['project'],
+                        'text_feature': text_feature,
+                        'components': item['components']
+                    }])
+                    
+                    # NOTE: Notebook used raw strings for Priority (Blocker, etc.), but app defaults to ID 3.0.
+                    # We need to map priority ID to string if it's a number, or use as is.
+                    # Re-using PRIORITY_MAP_V5 logic from helper if needed, but updated for V9 if it uses same strings.
+                    # Assuming V9 uses strings like 'Major', 'Critical'.
+                    priority_val = item.get('priority')
+                    if isinstance(priority_val, (int, float)) or (isinstance(priority_val, str) and priority_val.isdigit()):
+                         df_v9['priority'] = PRIORITY_MAP_V5.get(int(float(priority_val)), 'Major')
+                    elif not priority_val:
+                         df_v9['priority'] = 'Major'
+                    
+                    # 1. Classification
+                    pred_class_idx = deadline_clf.predict(df_v9)[0]
+                    pred_class = deadline_le.inverse_transform([pred_class_idx])[0]
+                    
+                    # 2. Quantile Regression
+                    lower = deadline_qr[0.05].predict(df_v9)[0]
+                    median = deadline_qr[0.50].predict(df_v9)[0]
+                    upper = deadline_qr[0.95].predict(df_v9)[0]
+                    
+                    deadline_info = {
+                        "class": pred_class,
+                        "interval_min": round(max(0.1, lower), 1),
+                        "interval_avg": round(max(0.1, median), 1),
+                        "interval_max": round(max(0.1, upper), 1),
+                        "confidence": "90%"
+                    }
+
+                except Exception as e:
+                    print(f"Error in V9 prediction: {e}")
+
+
+            # ----------------------------------------
+            # B. ASSIGNEE PREDICTION (v8 XGBoost NLP)
             # ----------------------------------------
             # Model expects: ['storypoint', 'priorityid', 'issuetype', 'project', 'text_content', 'status']
             
@@ -174,14 +232,15 @@ def predict_all_api():
                 "key": item["key"],
                 "project": item["project"],
                 "issuetype": item["issuetype"],
-                "description": item["description"],
                 
                 # N8N Expected Fields
-                "predicted_deadline_days": deadline_days, # Raw Integer
+                "predicted_deadline": deadline_info, # V9 Struct
+                "predicted_deadline_days": deadline_info["interval_avg"], # Backward compat scalar
+
                 "recommended_assignee": recommended_assignee,
                 "top_k_recommendations": top_k_recs,
                 
-                "model_version": "V7_Robust"
+                "model_version": "v8_Assignee + V9_Deadline_Robust"
             })
 
         return jsonify(results)
